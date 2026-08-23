@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Where the tools are used — Coastal Geohazards Experts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0e2f36;
+    --deep:#123b45;
+    --tide:#3d7d8c;
+    --sand:#f4efe4;
+    --sand-line:#dcd3bd;
+    --coral:#c1673b;
+    --paper:#fffdf8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--sand);font-family:'Inter',sans-serif;color:var(--ink);}
+  #app{display:flex;flex-direction:column;height:100vh;min-height:560px;}
+
+  header{
+    padding:18px 22px 14px;
+    border-bottom:1px solid var(--sand-line);
+    background:var(--paper);
+  }
+  header .eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--tide);
+  }
+  header h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(20px,2.6vw,28px);
+    margin:4px 0 4px;
+    color:var(--deep);
+  }
+  header p{margin:0;font-size:13.5px;color:#4a5a5e;max-width:70ch;}
+
+  #controls{
+    display:flex;flex-wrap:wrap;gap:8px;
+    padding:12px 22px;
+    background:var(--paper);
+    border-bottom:1px solid var(--sand-line);
+  }
+  .chip{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:6px 12px;border-radius:999px;
+    border:1px solid var(--sand-line);
+    background:var(--sand);
+    font-size:12.5px;font-weight:500;cursor:pointer;
+    transition:background .15s, border-color .15s;
+    user-select:none;
+  }
+  .chip:hover{border-color:var(--tide);}
+  .chip.active{background:var(--deep);color:var(--paper);border-color:var(--deep);}
+  .chip .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+
+  #main{flex:1;display:flex;min-height:0;}
+  #map{flex:1;background:#dfeaec;position:relative;}
+  #mapStatus{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:8px;text-align:center;padding:24px;
+    font-family:'Inter',sans-serif;color:var(--deep);background:#dfeaec;
+  }
+  #mapStatus.hidden{display:none;}
+  #mapStatus .msg{font-size:13.5px;color:#4a5a5e;max-width:40ch;}
+  #mapStatus a{color:var(--coral);font-weight:600;}
+
+  #sidebar{
+    width:300px;flex:0 0 300px;
+    background:var(--paper);
+    border-left:1px solid var(--sand-line);
+    overflow-y:auto;
+    padding:14px 16px 30px;
+  }
+  #sidebar h2{
+    font-family:'Space Mono',monospace;
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--tide);margin:0 0 10px;
+  }
+  .entry{
+    border:1px solid var(--sand-line);
+    border-left:3px solid var(--coral);
+    border-radius:4px;
+    padding:10px 12px;
+    margin-bottom:10px;
+    background:var(--sand);
+    cursor:pointer;
+  }
+  .entry:hover{border-left-color:var(--deep);}
+  .entry .tool{font-size:10.5px;font-family:'Space Mono',monospace;color:var(--tide);text-transform:uppercase;letter-spacing:.06em;}
+  .entry .org{font-family:'Fraunces',serif;font-weight:600;font-size:14.5px;margin:2px 0 3px;color:var(--deep);}
+  .entry .purpose{font-size:12px;color:#4a5a5e;line-height:1.4;}
+
+  .leaflet-popup-content-wrapper{
+    background:var(--paper);
+    border-radius:6px;
+    box-shadow:0 6px 20px rgba(14,47,54,.18);
+  }
+  .leaflet-popup-content{font-family:'Inter',sans-serif;font-size:13px;margin:14px 16px;min-width:220px;}
+  .pop-tool{font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tide);}
+  .pop-org{font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:var(--deep);margin:3px 0 6px;}
+  .pop-row{margin:3px 0;color:#3c4c50;}
+  .pop-row b{color:var(--ink);}
+  .pop-link{display:inline-block;margin-top:8px;font-size:12px;color:var(--coral);font-weight:600;text-decoration:none;}
+  .pop-link:hover{text-decoration:underline;}
+
+  @media (max-width:760px){
+    #sidebar{display:none;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="eyebrow">Coastal Geohazards Experts — impact map</div>
+    <h1>Where the tools are used</h1>
+    <p>CoastalME, ODSAS++, CliffMetrics and CESMapper in academic research, and public &amp; private sector coastal risk work. Click a marker or list entry for details and a source link.</p>
+  </header>
+
+  <div id="controls"></div>
+
+  <div id="main">
+    <div id="map">
+      <div id="mapStatus"><div>Loading map…</div></div>
+    </div>
+    <div id="sidebar">
+      <h2>Entries on this map</h2>
+      <div id="entryList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ---------------------------------------------------------------
+   RESILIENT LEAFLET LOADER
+   Tries a couple of CDNs in sequence (some networks/embeds block
+   one but not another) and only runs the map code once `L` is
+   confirmed to exist. Shows a clear message instead of a blank
+   map if every source fails, so this is never silently broken.
+--------------------------------------------------------------- */
+const LEAFLET_SOURCES = [
+  { css: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css",
+    js:  "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" },
+  { css: "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css",
+    js:  "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js" },
+  { css: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
+    js:  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" }
+];
+
+function loadCss(href){
+  return new Promise((resolve) => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.onload = () => resolve(true);
+    link.onerror = () => resolve(false);
+    document.head.appendChild(link);
+  });
+}
+function loadJs(src){
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
+}
+
+async function loadLeaflet(){
+  for (const source of LEAFLET_SOURCES){
+    if (typeof window.L !== 'undefined') return true;
+    await loadCss(source.css);
+    const ok = await loadJs(source.js);
+    if (ok && typeof window.L !== 'undefined') return true;
+  }
+  return typeof window.L !== 'undefined';
+}
+
+loadLeaflet().then((ok) => {
+  const status = document.getElementById('mapStatus');
+  if (!ok) {
+    status.innerHTML = `
+      <div style="font-family:'Fraunces',serif;font-weight:600;font-size:16px;">Map library didn't load</div>
+      <div class="msg">The Leaflet.js library couldn't be reached from this page. This usually means the current preview/embed is blocking external scripts. Try opening this HTML file directly in a browser tab, or check that your Webflow embed allows external scripts, then reload.</div>`;
+    return;
+  }
+  status.classList.add('hidden');
+  initMap();
+});
+
+function initMap(){
+/* ---------------------------------------------------------------
+   DATA
+   Each record is one confirmed instance of a tool being used.
+   Replace/extend this array with your own verified entries —
+   see the notes at the very bottom of the assistant's reply for
+   how each of these was sourced, and what still needs checking.
+   "contact" should be an institutional / public contact (a lab,
+   programme, or corresponding-author listing), not a scraped
+   personal email — see the privacy note in the reply.
+--------------------------------------------------------------- */
+const TOOLS = {
+  "CoastalME":  {color:"#123b45"},
+  "ODSAS++":    {color:"#3d7d8c"},
+  "CliffMetrics":{color:"#c1673b"},
+  "CESMapper":  {color:"#8a7a4b"}
+};
+
+const DATA = [
+  {
+    tool:"CoastalME",
+    org:"British Geological Survey / UKRI",
+    sector:"Public sector (research institute)",
+    lat:52.6, lng:-3.2,
+    purpose:"Core development home of CoastalME; used to quantify sediment release for the East Anglia 'sediment circular economy' project (Felixstowe–Caister cliffs).",
+    contact:"BGS coastal geoscience team — bgs.ac.uk",
+    source:"https://www.bgs.ac.uk/news/what-does-the-next-generation-of-coastal-environmental-models-look-like/"
+  },
+  {
+    tool:"CoastalME",
+    org:"Environment Agency — NCERM2 programme",
+    sector:"Public sector (government)",
+    lat:52.35, lng:-1.2,
+    purpose:"Findings used to inform the National Coastal Erosion Risk Mapping programme (NCERM2), cited as a case study of operational research impact.",
+    contact:"gov.uk FCERM research team",
+    source:"https://www.gov.uk/government/case-studies/coastal-morphological-modelling-for-decision-makers"
+  },
+  {
+    tool:"CoastalME",
+    org:"Junta de Andalucía coastal risk assessment",
+    sector:"Public sector (regional government, Spain)",
+    lat:36.7, lng:-4.4,
+    purpose:"Applied to assess flooding and erosion risk along ~1,200 km of the Andalusian coastline at 1:25,000 scale.",
+    contact:"To verify — regional coastal authority",
+    source:"https://www.bgs.ac.uk/news/what-does-the-next-generation-of-coastal-environmental-models-look-like/"
+  },
+  {
+    tool:"CoastalME",
+    org:"Happisburgh, Norfolk — cliff/beach research",
+    sector:"Academic (UK)",
+    lat:52.82, lng:1.53,
+    purpose:"Original CoastalME case study site: 3D beach-thickness modelling to explain rapid cliff retreat after coastal-defence removal.",
+    contact:"Corresponding authors of Payo et al., see source",
+    source:"https://www.researchgate.net/publication/330904580_MODELLING_RAPID_COASTAL_CATCH-UP_AFTER_DEFENCE_REMOVAL_ALONG_THE_SOFT_CLIFF_COAST_OF_HAPPISBURGH_UK"
+  },
+  {
+    tool:"CliffMetrics",
+    org:"University of Vigo / Galician coast studies",
+    sector:"Academic (Spain)",
+    lat:42.4, lng:-8.8,
+    purpose:"CliffMetrics (SAGA GIS build) used as the comparison baseline while developing ODSAS on the Galician coast.",
+    contact:"Gómez-Pazo et al., MDPI JMSE — corresponding author",
+    source:"https://mdpi.com/2077-1312/10/1/26/htm"
+  },
+  {
+    tool:"CliffMetrics",
+    org:"St Bees Head / Flamborough Head, UK — model validation",
+    sector:"Academic (UK)",
+    lat:54.5, lng:-3.6,
+    purpose:"Original CliffMetrics v1.0 sensitivity and validation sites on the England coastline.",
+    contact:"Payo et al., Geosci. Model Dev. 2018",
+    source:"https://gmd.copernicus.org/articles/11/4317/2018/"
+  },
+  {
+    tool:"ODSAS++",
+    org:"Galician coast (NW Iberian Peninsula) — 10 study sites",
+    sector:"Academic (Spain)",
+    lat:42.9, lng:-8.9,
+    purpose:"ODSAS v1.0 developed and benchmarked against DSAS across ten Galician sites spanning sandy and granite-cliff coastlines.",
+    contact:"Gómez-Pazo, A.; Payo, A. — MDPI JMSE 2022",
+    source:"https://mdpi.com/2077-1312/10/1/26/htm"
+  },
+  {
+    tool:"CESMapper",
+    org:"To verify",
+    sector:"—",
+    lat:55.95, lng:-3.19,
+    purpose:"No confirmed third-party deployment found yet in this pass — worth checking QGIS plugin repository download/usage stats and any citing papers directly.",
+    contact:"—",
+    source:"https://www.coastalgeohazardsexperts.co.uk/tools/cesmapper"
+  }
+];
+
+// ---- build controls (tool filter chips) ----
+const controls = document.getElementById('controls');
+const activeTools = new Set(Object.keys(TOOLS));
+
+function renderChips(){
+  controls.innerHTML = '';
+  Object.entries(TOOLS).forEach(([name,cfg])=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (activeTools.has(name) ? ' active' : '');
+    chip.innerHTML = `<span class="dot" style="background:${cfg.color}"></span>${name}`;
+    chip.onclick = () => {
+      activeTools.has(name) ? activeTools.delete(name) : activeTools.add(name);
+      renderChips();
+      renderAll();
+    };
+    controls.appendChild(chip);
+  });
+}
+
+// ---- map ----
+const map = L.map('map', {scrollWheelZoom:true}).setView([48, -2], 4);
+
+const TILE_PROVIDERS = [
+  { url:'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
+    attribution:'&copy; OpenStreetMap contributors &copy; CARTO', maxZoom:18 },
+  { url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution:'&copy; OpenStreetMap contributors', maxZoom:19 },
+  { url:'https://tile.openstreetmap.de/{z}/{x}/{y}.png',
+    attribution:'&copy; OpenStreetMap contributors', maxZoom:19 }
+];
+
+function addTileLayerWithFallback(providerIndex){
+  if (providerIndex >= TILE_PROVIDERS.length) return;
+  const provider = TILE_PROVIDERS[providerIndex];
+  const layer = L.tileLayer(provider.url, {attribution:provider.attribution, maxZoom:provider.maxZoom});
+  let loaded = false, errors = 0;
+  layer.on('tileload', () => { loaded = true; });
+  layer.on('tileerror', () => {
+    errors++;
+    // give it a moment in case a few isolated tiles fail, but bail out
+    // fast if nothing at all is coming through from this provider
+    if (!loaded && errors > 4) {
+      map.removeLayer(layer);
+      addTileLayerWithFallback(providerIndex + 1);
+    }
+  });
+  layer.addTo(map);
+}
+addTileLayerWithFallback(0);
+
+let markers = [];
+const sidebarList = document.getElementById('entryList');
+
+function makeIcon(color){
+  return L.divIcon({
+    className:'',
+    html:`<div style="width:16px;height:16px;border-radius:50% 50% 50% 0;background:${color};transform:rotate(-45deg);border:2px solid #fffdf8;box-shadow:0 2px 6px rgba(14,47,54,.35);"></div>`,
+    iconSize:[16,16],
+    iconAnchor:[8,16],
+    popupAnchor:[0,-16]
+  });
+}
+
+function renderAll(){
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  sidebarList.innerHTML = '';
+
+  DATA.filter(d => activeTools.has(d.tool)).forEach(d => {
+    const color = TOOLS[d.tool].color;
+    const marker = L.marker([d.lat, d.lng], {icon: makeIcon(color)}).addTo(map);
+    marker.bindPopup(`
+      <div class="pop-tool">${d.tool}</div>
+      <div class="pop-org">${d.org}</div>
+      <div class="pop-row"><b>Sector:</b> ${d.sector}</div>
+      <div class="pop-row">${d.purpose}</div>
+      <div class="pop-row"><b>Contact:</b> ${d.contact}</div>
+      <a class="pop-link" href="${d.source}" target="_blank" rel="noopener">View source →</a>
+    `);
+    markers.push(marker);
+
+    const entry = document.createElement('div');
+    entry.className = 'entry';
+    entry.style.borderLeftColor = color;
+    entry.innerHTML = `<div class="tool">${d.tool}</div><div class="org">${d.org}</div><div class="purpose">${d.purpose}</div>`;
+    entry.onclick = () => { map.setView([d.lat,d.lng], 7); marker.openPopup(); };
+    sidebarList.appendChild(entry);
+  });
+}
+
+renderChips();
+renderAll();
+} // end initMap
+</script>
+</body>
+</html>
