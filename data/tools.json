@@ -1,0 +1,134 @@
+[
+  {
+    "id": 1,
+    "tool": "CoastalME",
+    "version": "1.2.0",
+    "location": "Gold Coast, Queensland, Australia",
+    "lat": -28.0167,
+    "lng": 153.4000,
+    "organisation": "Griffith University",
+    "year": 2023,
+    "description": "Coastal morphodynamic evolution modelling"
+  },
+  {
+    "id": 2,
+    "tool": "CoastalME",
+    "version": "1.1.5",
+    "location": "Lisbon, Portugal",
+    "lat": 38.7169,
+    "lng": -9.1399,
+    "organisation": "Instituto Hidrográfico",
+    "year": 2022,
+    "description": "Shoreline change analysis"
+  },
+  {
+    "id": 3,
+    "tool": "CoastalME",
+    "version": "1.2.0",
+    "location": "Virginia Beach, USA",
+    "lat": 36.8529,
+    "lng": -75.9780,
+    "organisation": "USACE",
+    "year": 2023,
+    "description": "Sea level rise impact assessment"
+  },
+  {
+    "id": 4,
+    "tool": "CoastalME",
+    "version": "1.0.0",
+    "location": "East Anglia, United Kingdom",
+    "lat": 52.6173,
+    "lng": 1.2428,
+    "organisation": "Environment Agency",
+    "year": 2021,
+    "description": "Flood risk mapping"
+  },
+  {
+    "id": 5,
+    "tool": "CoastalME",
+    "version": "1.1.5",
+    "location": "Miami, Florida, USA",
+    "lat": 25.7617,
+    "lng": -80.1918,
+    "organisation": "NOAA",
+    "year": 2022,
+    "description": "Hurricane storm surge modelling"
+  },
+  {
+    "id": 6,
+    "tool": "CoastalME",
+    "version": "1.2.0",
+    "location": "Maldives",
+    "lat": 3.2028,
+    "lng": 73.2207,
+    "organisation": "Ministry of Environment",
+    "year": 2023,
+    "description": "Island erosion vulnerability study"
+  },
+  {
+    "id": 7,
+    "tool": "CoastalME",
+    "version": "1.1.0",
+    "location": "Cape Town, South Africa",
+    "lat": -33.9249,
+    "lng": 18.4241,
+    "organisation": "DEA",
+    "year": 2022,
+    "description": "Coastal dune dynamics"
+  },
+  {
+    "id": 8,
+    "tool": "CoastalME",
+    "version": "1.2.0",
+    "location": "Tokyo, Japan",
+    "lat": 35.6762,
+    "lng": 139.6503,
+    "organisation": "NILIM",
+    "year": 2023,
+    "description": "Tsunami inundation modelling"
+  },
+  {
+    "id": 9,
+    "tool": "CoastalME",
+    "version": "1.0.5",
+    "location": "Sydney, Australia",
+    "lat": -33.8688,
+    "lng": 151.2093,
+    "organisation": "NSW DPE",
+    "year": 2021,
+    "description": "Beach nourishment planning"
+  },
+  {
+    "id": 10,
+    "tool": "CoastalME",
+    "version": "1.2.0",
+    "location": "Mumbai, India",
+    "lat": 19.0760,
+    "lng": 72.8777,
+    "organisation": "NCSCM",
+    "year": 2023,
+    "description": "Coastal vulnerability index"
+  },
+  {
+    "id": 11,
+    "tool": "CoastalME",
+    "version": "1.1.5",
+    "location": "Rotterdam, Netherlands",
+    "lat": 51.9244,
+    "lng": 4.4777,
+    "organisation": "Deltares",
+    "year": 2022,
+    "description": "Delta morphology simulation"
+  },
+  {
+    "id": 12,
+    "tool": "CoastalME",
+    "version": "1.2.0",
+    "location": "Dakar, Senegal",
+    "lat": 14.7167,
+    "lng": -17.4677,
+    "organisation": "UCAD",
+    "year": 2023,
+    "description": "West African coast erosion"
+  }
+]

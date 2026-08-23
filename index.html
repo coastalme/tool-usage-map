@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoastalME Tool Usage Map</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- Leaflet MarkerCluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #1a1a2e;
+      color: #e0e0e0;
+    }
+
+    header {
+      background: #16213e;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 2px solid #0f3460;
+      z-index: 1000;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #e94560;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      color: #a0a0b0;
+    }
+
+    .header-stats {
+      margin-left: auto;
+      display: flex;
+      gap: 24px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #e94560;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: #a0a0b0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .dashboard {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      width: 280px;
+      background: #16213e;
+      border-right: 1px solid #0f3460;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .sidebar-section {
+      padding: 14px 16px;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .sidebar-section h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #a0a0b0;
+      margin-bottom: 10px;
+    }
+
+    /* Filters */
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .filter-label {
+      font-size: 0.8rem;
+      color: #c0c0d0;
+      margin-bottom: 2px;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      background: #0f3460;
+      border: 1px solid #1a4a80;
+      border-radius: 6px;
+      color: #e0e0e0;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: #e94560;
+    }
+
+    button#reset-filters {
+      margin-top: 8px;
+      width: 100%;
+      padding: 7px;
+      background: #0f3460;
+      border: 1px solid #1a4a80;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button#reset-filters:hover {
+      background: #e94560;
+      border-color: #e94560;
+    }
+
+    /* Results list */
+    #results-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px;
+    }
+
+    #results-list::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    #results-list::-webkit-scrollbar-track {
+      background: #0f3460;
+    }
+
+    #results-list::-webkit-scrollbar-thumb {
+      background: #e94560;
+      border-radius: 3px;
+    }
+
+    .result-item {
+      background: #0f3460;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .result-item:hover,
+    .result-item.active {
+      border-color: #e94560;
+      background: #1a2a50;
+    }
+
+    .result-item .ri-tool {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #e94560;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .result-item .ri-location {
+      font-size: 0.82rem;
+      color: #e0e0e0;
+      margin: 3px 0 2px;
+      font-weight: 500;
+    }
+
+    .result-item .ri-org {
+      font-size: 0.75rem;
+      color: #a0a0b0;
+    }
+
+    .result-item .ri-meta {
+      font-size: 0.72rem;
+      color: #7070a0;
+      margin-top: 4px;
+    }
+
+    /* Map */
+    #map {
+      flex: 1;
+    }
+
+    /* Leaflet popup override */
+    .leaflet-popup-content-wrapper {
+      background: #16213e;
+      color: #e0e0e0;
+      border: 1px solid #0f3460;
+      border-radius: 8px;
+    }
+
+    .leaflet-popup-tip {
+      background: #16213e;
+    }
+
+    .popup-tool {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #e94560;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .popup-location {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 4px 0 2px;
+    }
+
+    .popup-org {
+      font-size: 0.82rem;
+      color: #a0a0b0;
+    }
+
+    .popup-desc {
+      font-size: 0.8rem;
+      color: #c0c0d0;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #0f3460;
+    }
+
+    .popup-meta {
+      font-size: 0.75rem;
+      color: #7070a0;
+      margin-top: 4px;
+    }
+
+    /* No results */
+    #no-results {
+      display: none;
+      padding: 20px 12px;
+      text-align: center;
+      color: #7070a0;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>CoastalME Tool Usage Map</h1>
+      <p>Where the tools in this repository have been used</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Shown</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-countries">0</div>
+        <div class="stat-label">Countries</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="stat-tools">0</div>
+        <div class="stat-label">Tools</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard">
+    <aside id="sidebar">
+      <div class="sidebar-section">
+        <h3>Filters</h3>
+        <div class="filter-group">
+          <label class="filter-label" for="filter-tool">Tool</label>
+          <select id="filter-tool">
+            <option value="">All Tools</option>
+          </select>
+
+          <label class="filter-label" for="filter-year" style="margin-top:8px;">Year</label>
+          <select id="filter-year">
+            <option value="">All Years</option>
+          </select>
+
+          <label class="filter-label" for="filter-search" style="margin-top:8px;">Search</label>
+          <input type="text" id="filter-search" placeholder="Location or organisation…" />
+
+          <button id="reset-filters">Reset Filters</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Results (<span id="results-count">0</span>)</h3>
+      </div>
+
+      <div id="results-list">
+        <div id="no-results">No results match the current filters.</div>
+      </div>
+    </aside>
+
+    <div id="map"></div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
+  <!-- Leaflet MarkerCluster JS -->
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+  <script>
+    // ── Map setup ──────────────────────────────────────────────────────────────
+    const map = L.map('map', {
+      center: [20, 10],
+      zoom: 2,
+      minZoom: 2
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    // ── State ──────────────────────────────────────────────────────────────────
+    let allData = [];
+    let filteredData = [];
+    let markerMap = {};   // id → marker
+    let activeId = null;
+    let clusterGroup = null;
+
+    // ── Marker icon ────────────────────────────────────────────────────────────
+    function makeIcon(highlighted) {
+      return L.divIcon({
+        className: '',
+        html: `<div style="
+          width:12px; height:12px;
+          background:${highlighted ? '#ffffff' : '#e94560'};
+          border:2px solid ${highlighted ? '#e94560' : '#ffffff'};
+          border-radius:50%;
+          box-shadow:0 0 6px rgba(233,69,96,0.8);
+        "></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
+        popupAnchor: [0, -10]
+      });
+    }
+
+    // ── HTML escaping helper ───────────────────────────────────────────────────
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ── Popup content ──────────────────────────────────────────────────────────
+    function popupHtml(d) {
+      return `
+        <div class="popup-tool">${esc(d.tool)} v${esc(d.version)}</div>
+        <div class="popup-location">${esc(d.location)}</div>
+        <div class="popup-org">${esc(d.organisation)}</div>
+        <div class="popup-desc">${esc(d.description)}</div>
+        <div class="popup-meta">Year: ${esc(d.year)}</div>
+      `;
+    }
+
+    // ── Build sidebar item ─────────────────────────────────────────────────────
+    function buildResultItem(d) {
+      const el = document.createElement('div');
+      el.className = 'result-item';
+      el.dataset.id = d.id;
+      el.innerHTML = `
+        <div class="ri-tool">${esc(d.tool)} v${esc(d.version)}</div>
+        <div class="ri-location">${esc(d.location)}</div>
+        <div class="ri-org">${esc(d.organisation)}</div>
+        <div class="ri-meta">${esc(d.year)}</div>
+      `;
+      el.addEventListener('click', () => focusItem(d.id));
+      return el;
+    }
+
+    // ── Focus a specific item ──────────────────────────────────────────────────
+    function focusItem(id) {
+      // Deactivate previous
+      if (activeId !== null) {
+        const prev = document.querySelector(`.result-item[data-id="${activeId}"]`);
+        if (prev) prev.classList.remove('active');
+        const prevMarker = markerMap[activeId];
+        if (prevMarker) prevMarker.setIcon(makeIcon(false));
+      }
+
+      activeId = id;
+      const item = document.querySelector(`.result-item[data-id="${id}"]`);
+      if (item) {
+        item.classList.add('active');
+        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      const marker = markerMap[id];
+      if (marker) {
+        marker.setIcon(makeIcon(true));
+        // Unspider clusters if needed
+        if (clusterGroup) {
+          clusterGroup.zoomToShowLayer(marker, () => {
+            marker.openPopup();
+          });
+        } else {
+          map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true });
+          marker.openPopup();
+        }
+      }
+    }
+
+    // ── Render filtered data ───────────────────────────────────────────────────
+    function render() {
+      // Remove old cluster group
+      if (clusterGroup) {
+        map.removeLayer(clusterGroup);
+      }
+      clusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 50,
+        iconCreateFunction(cluster) {
+          const count = cluster.getChildCount();
+          return L.divIcon({
+            className: '',
+            html: `<div style="
+              width:36px; height:36px;
+              background:rgba(233,69,96,0.85);
+              border:2px solid #fff;
+              border-radius:50%;
+              display:flex; align-items:center; justify-content:center;
+              font-size:0.8rem; font-weight:700; color:#fff;
+            ">${count}</div>`,
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+          });
+        }
+      });
+
+      markerMap = {};
+      activeId = null;
+
+      filteredData.forEach(d => {
+        const marker = L.marker([d.lat, d.lng], { icon: makeIcon(false) })
+          .bindPopup(popupHtml(d), { maxWidth: 240 });
+
+        marker.on('click', () => {
+          // Highlight sidebar
+          if (activeId !== null) {
+            const prev = document.querySelector(`.result-item[data-id="${activeId}"]`);
+            if (prev) prev.classList.remove('active');
+            const prevMarker = markerMap[activeId];
+            if (prevMarker && prevMarker !== marker) prevMarker.setIcon(makeIcon(false));
+          }
+          activeId = d.id;
+          marker.setIcon(makeIcon(true));
+          const sideItem = document.querySelector(`.result-item[data-id="${d.id}"]`);
+          if (sideItem) {
+            sideItem.classList.add('active');
+            sideItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        });
+
+        markerMap[d.id] = marker;
+        clusterGroup.addLayer(marker);
+      });
+
+      map.addLayer(clusterGroup);
+
+      // Rebuild sidebar list
+      const list = document.getElementById('results-list');
+      const noResults = document.getElementById('no-results');
+      // Remove old items
+      list.querySelectorAll('.result-item').forEach(el => el.remove());
+
+      if (filteredData.length === 0) {
+        noResults.style.display = 'block';
+      } else {
+        noResults.style.display = 'none';
+        filteredData.forEach(d => list.appendChild(buildResultItem(d)));
+      }
+
+      document.getElementById('results-count').textContent = filteredData.length;
+      updateStats(filteredData);
+    }
+
+    // ── Apply filters ──────────────────────────────────────────────────────────
+    function applyFilters() {
+      const tool = document.getElementById('filter-tool').value;
+      const year = document.getElementById('filter-year').value;
+      const search = document.getElementById('filter-search').value.toLowerCase().trim();
+
+      filteredData = allData.filter(d => {
+        if (tool && d.tool !== tool) return false;
+        if (year && String(d.year) !== year) return false;
+        if (search && !d.location.toLowerCase().includes(search) &&
+            !d.organisation.toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      render();
+    }
+
+    // ── Populate filter dropdowns ──────────────────────────────────────────────
+    function populateFilters(data) {
+      const tools = [...new Set(data.map(d => d.tool))].sort();
+      const years = [...new Set(data.map(d => d.year))].sort((a, b) => b - a);
+
+      const toolSel = document.getElementById('filter-tool');
+      tools.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        toolSel.appendChild(opt);
+      });
+
+      const yearSel = document.getElementById('filter-year');
+      years.forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearSel.appendChild(opt);
+      });
+    }
+
+    // ── Header stats ───────────────────────────────────────────────────────────
+    function updateStats(data) {
+      document.getElementById('stat-total').textContent = data.length;
+
+      // Approximate country count from location strings (last comma-separated part)
+      const countries = new Set(data.map(d => {
+        const parts = d.location.split(',');
+        return parts[parts.length - 1].trim();
+      }));
+      document.getElementById('stat-countries').textContent = countries.size;
+
+      const tools = new Set(data.map(d => d.tool));
+      document.getElementById('stat-tools').textContent = tools.size;
+    }
+
+    // ── Wire up filter events ──────────────────────────────────────────────────
+    document.getElementById('filter-tool').addEventListener('change', applyFilters);
+    document.getElementById('filter-year').addEventListener('change', applyFilters);
+    document.getElementById('filter-search').addEventListener('input', applyFilters);
+
+    document.getElementById('reset-filters').addEventListener('click', () => {
+      document.getElementById('filter-tool').value = '';
+      document.getElementById('filter-year').value = '';
+      document.getElementById('filter-search').value = '';
+      applyFilters();
+    });
+
+    // ── Load data ──────────────────────────────────────────────────────────────
+    fetch('data/tools.json')
+      .then(r => r.json())
+      .then(data => {
+        allData = data;
+        filteredData = data;
+        populateFilters(data);
+        updateStats(data);
+        render();
+      })
+      .catch(err => {
+        console.error('Failed to load tools.json:', err);
+        document.getElementById('results-list').innerHTML =
+          '<div style="padding:20px;color:#e94560;font-size:0.85rem;">Failed to load data. Please serve this page via a local HTTP server.</div>';
+      });
+  </script>
+</body>
+</html>
