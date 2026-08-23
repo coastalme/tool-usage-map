@@ -109,6 +109,11 @@
   .pop-row b{color:var(--ink);}
   .pop-link{display:inline-block;margin-top:8px;font-size:12px;color:var(--coral);font-weight:600;text-decoration:none;}
   .pop-link:hover{text-decoration:underline;}
+  .date-badge{
+    display:inline-block;font-family:'Space Mono',monospace;font-size:10.5px;
+    color:var(--deep);background:var(--sand);border:1px solid var(--sand-line);
+    border-radius:4px;padding:1px 7px;margin-left:6px;
+  }
 
   @media (max-width:760px){
     #sidebar{display:none;}
@@ -131,7 +136,7 @@
       <div id="mapStatus"><div>Loading map…</div></div>
     </div>
     <div id="sidebar">
-      <h2>Entries on this map</h2>
+      <h2>Entries — most recent first</h2>
       <div id="entryList"></div>
     </div>
   </div>
@@ -201,12 +206,12 @@ function initMap(){
 /* ---------------------------------------------------------------
    DATA
    Each record is one confirmed instance of a tool being used.
-   Replace/extend this array with your own verified entries —
-   see the notes at the very bottom of the assistant's reply for
-   how each of these was sourced, and what still needs checking.
-   "contact" should be an institutional / public contact (a lab,
-   programme, or corresponding-author listing), not a scraped
-   personal email — see the privacy note in the reply.
+   "date" is the reference/publication year of the source cited —
+   it marks when that specific use was documented, not necessarily
+   when the work took place. Replace/extend this array with your
+   own verified entries. "contact" should be an institutional /
+   public contact, not a scraped personal email — see the privacy
+   note earlier in this conversation.
 --------------------------------------------------------------- */
 const TOOLS = {
   "CoastalME":  {color:"#123b45"},
@@ -218,17 +223,9 @@ const TOOLS = {
 const DATA = [
   {
     tool:"CoastalME",
-    org:"British Geological Survey / UKRI",
-    sector:"Public sector (research institute)",
-    lat:52.6, lng:-3.2,
-    purpose:"Core development home of CoastalME; used to quantify sediment release for the East Anglia 'sediment circular economy' project (Felixstowe–Caister cliffs).",
-    contact:"BGS coastal geoscience team — bgs.ac.uk",
-    source:"https://www.bgs.ac.uk/news/what-does-the-next-generation-of-coastal-environmental-models-look-like/"
-  },
-  {
-    tool:"CoastalME",
     org:"Environment Agency — NCERM2 programme",
     sector:"Public sector (government)",
+    date:"2021",
     lat:52.35, lng:-1.2,
     purpose:"Findings used to inform the National Coastal Erosion Risk Mapping programme (NCERM2), cited as a case study of operational research impact.",
     contact:"gov.uk FCERM research team",
@@ -236,17 +233,19 @@ const DATA = [
   },
   {
     tool:"CoastalME",
-    org:"Junta de Andalucía coastal risk assessment",
-    sector:"Public sector (regional government, Spain)",
-    lat:36.7, lng:-4.4,
-    purpose:"Applied to assess flooding and erosion risk along ~1,200 km of the Andalusian coastline at 1:25,000 scale.",
-    contact:"To verify — regional coastal authority",
-    source:"https://www.bgs.ac.uk/news/what-does-the-next-generation-of-coastal-environmental-models-look-like/"
+    org:"University of Granada (IISTA) — ICCOAST project",
+    sector:"Academic / publicly funded (Junta de Andalucía), Spain",
+    date:"2025",
+    lat:36.75, lng:-3.03,
+    purpose:"CoastalME (coupled with CSHORE) used to simulate hydro-morphodynamic evolution at Guainos Beach, Adra, as part of a probabilistic methodology projecting coastal erosion and flooding across roughly 1,000 km of the Andalusian coast (2025–2100, RCP 8.5 scenario).",
+    contact:"Corresponding author, Otiñar et al. 2025 — see source",
+    source:"https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2025.1631041/full"
   },
   {
     tool:"CoastalME",
     org:"Happisburgh, Norfolk — cliff/beach research",
     sector:"Academic (UK)",
+    date:"2020",
     lat:52.82, lng:1.53,
     purpose:"Original CoastalME case study site: 3D beach-thickness modelling to explain rapid cliff retreat after coastal-defence removal.",
     contact:"Corresponding authors of Payo et al., see source",
@@ -256,6 +255,7 @@ const DATA = [
     tool:"CliffMetrics",
     org:"University of Vigo / Galician coast studies",
     sector:"Academic (Spain)",
+    date:"2022",
     lat:42.4, lng:-8.8,
     purpose:"CliffMetrics (SAGA GIS build) used as the comparison baseline while developing ODSAS on the Galician coast.",
     contact:"Gómez-Pazo et al., MDPI JMSE — corresponding author",
@@ -265,6 +265,7 @@ const DATA = [
     tool:"CliffMetrics",
     org:"St Bees Head / Flamborough Head, UK — model validation",
     sector:"Academic (UK)",
+    date:"2018",
     lat:54.5, lng:-3.6,
     purpose:"Original CliffMetrics v1.0 sensitivity and validation sites on the England coastline.",
     contact:"Payo et al., Geosci. Model Dev. 2018",
@@ -274,19 +275,51 @@ const DATA = [
     tool:"ODSAS++",
     org:"Galician coast (NW Iberian Peninsula) — 10 study sites",
     sector:"Academic (Spain)",
+    date:"2022",
     lat:42.9, lng:-8.9,
     purpose:"ODSAS v1.0 developed and benchmarked against DSAS across ten Galician sites spanning sandy and granite-cliff coastlines.",
     contact:"Gómez-Pazo, A.; Payo, A. — MDPI JMSE 2022",
     source:"https://mdpi.com/2077-1312/10/1/26/htm"
   },
   {
+    tool:"CliffMetrics",
+    org:"Office of Public Works (OPW), Ireland",
+    sector:"Public sector (government, Ireland)",
+    date:"To verify",
+    lat:53.56, lng:-6.79,
+    purpose:"Reported by the developer as used by OPW to quantify coastal cliff retreat rates as part of Ireland's national coastal erosion assessment work. Not yet independently verified — location is OPW's Trim HQ as a placeholder pending the actual study site(s); add a direct source/report link when available.",
+    contact:"Office of Public Works — opw.ie",
+    source:"https://www.opw.ie"
+  },
+  {
+    tool:"CliffMetrics",
+    org:"Environment Agency — NCERM2 programme",
+    sector:"Public sector (government)",
+    date:"To verify",
+    lat:52.9, lng:-0.9,
+    purpose:"Reported by the developer as used within the NCERM2 programme for cliff retreat quantification (CoastalME's NCERM2 role is separately documented — see the gov.uk case study). This specific CliffMetrics usage is not yet independently verified; add a direct source when available.",
+    contact:"gov.uk FCERM research team",
+    source:"https://www.gov.uk/government/case-studies/coastal-morphological-modelling-for-decision-makers"
+  },
+  {
     tool:"CESMapper",
-    org:"To verify",
-    sector:"—",
-    lat:55.95, lng:-3.19,
-    purpose:"No confirmed third-party deployment found yet in this pass — worth checking QGIS plugin repository download/usage stats and any citing papers directly.",
-    contact:"—",
-    source:"https://www.coastalgeohazardsexperts.co.uk/tools/cesmapper"
+    org:"University College London (UCL) — iCOASST project",
+    sector:"Academic / publicly funded (NERC, UK)",
+    date:"2016",
+    lat:51.98, lng:1.40,
+    purpose:"CESMapper used to produce Coastal and Estuarine System Maps for the Deben estuary and adjoining Suffolk coast, one of two national iCOASST demonstration sites showing the CESM conceptual-mapping approach.",
+    contact:"UCL Coastal & Estuarine Research Unit — see source",
+    source:"https://coastalmonitoring.org/ccoresources/iCOASST/CESM/"
+  },
+  {
+    tool:"CESMapper",
+    org:"University College London (UCL) — iCOASST project",
+    sector:"Academic / publicly funded (NERC, UK)",
+    date:"2016",
+    lat:53.45, lng:-3.15,
+    purpose:"Second national iCOASST demonstration site: CESM system maps produced for Liverpool Bay (Sefton to Blackpool frontage) alongside the Suffolk coast application.",
+    contact:"UCL Coastal & Estuarine Research Unit — see source",
+    source:"https://coastalmonitoring.org/ccoresources/iCOASST/CESM/"
   }
 ];
 
@@ -353,16 +386,27 @@ function makeIcon(color){
   });
 }
 
+function sortByDateDesc(list){
+  // Pulls a leading 4-digit year out of the date string (handles
+  // "2025 (reported)" and "—" gracefully) and sorts newest first;
+  // undated entries drop to the bottom.
+  return [...list].sort((a, b) => {
+    const yearOf = (s) => { const m = /\d{4}/.exec(s || ''); return m ? parseInt(m[0], 10) : -1; };
+    return yearOf(b.date) - yearOf(a.date);
+  });
+}
+
 function renderAll(){
   markers.forEach(m => map.removeLayer(m));
   markers = [];
   sidebarList.innerHTML = '';
 
-  DATA.filter(d => activeTools.has(d.tool)).forEach(d => {
+  const filtered = sortByDateDesc(DATA.filter(d => activeTools.has(d.tool)));
+  filtered.forEach(d => {
     const color = TOOLS[d.tool].color;
     const marker = L.marker([d.lat, d.lng], {icon: makeIcon(color)}).addTo(map);
     marker.bindPopup(`
-      <div class="pop-tool">${d.tool}</div>
+      <div class="pop-tool">${d.tool}<span class="date-badge">${d.date}</span></div>
       <div class="pop-org">${d.org}</div>
       <div class="pop-row"><b>Sector:</b> ${d.sector}</div>
       <div class="pop-row">${d.purpose}</div>
@@ -374,7 +418,7 @@ function renderAll(){
     const entry = document.createElement('div');
     entry.className = 'entry';
     entry.style.borderLeftColor = color;
-    entry.innerHTML = `<div class="tool">${d.tool}</div><div class="org">${d.org}</div><div class="purpose">${d.purpose}</div>`;
+    entry.innerHTML = `<div class="tool">${d.tool}<span class="date-badge">${d.date}</span></div><div class="org">${d.org}</div><div class="purpose">${d.purpose}</div>`;
     entry.onclick = () => { map.setView([d.lat,d.lng], 7); marker.openPopup(); };
     sidebarList.appendChild(entry);
   });
