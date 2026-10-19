@@ -285,10 +285,21 @@ function renderChips(){
 // ---- D3 Network Graph ----
 const svg = d3.select('#networkSvg');
 const container = document.getElementById('network');
-let width = container.clientWidth;
-let height = container.clientHeight;
+let width = 0;
+let height = 0;
+let simulation = null;
 
-svg.attr('width', width).attr('height', height);
+function measure(){
+  const rect = container.getBoundingClientRect();
+  width = Math.max(1, Math.floor(rect.width));
+  height = Math.max(1, Math.floor(rect.height));
+  svg.attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet')
+    .style('width', '100%')
+    .style('height', '100%')
+    .style('display', 'block');
+}
+measure();
 const g = svg.append('g');
 let selectedNode = null;
 const sidebarList = document.getElementById('entryList');
@@ -301,6 +312,7 @@ function sortByDateDesc(list){
 }
 
 function renderAll(){
+  if (simulation) simulation.stop();
   g.selectAll('*').remove();
 
   const filtered = sortByDateDesc(DATA.filter(d => activeTools.has(d.tool)));
@@ -331,13 +343,14 @@ function renderAll(){
   });
 
   // Create simulation
-  const simulation = d3.forceSimulation(nodeArray)
+  const sim = simulation = d3.forceSimulation(nodeArray)
     .force('link', d3.forceLink(linkArray)
       .id(d => d.id)
       .distance(d => d.source.type === 'tool' ? 80 : 40)
       .strength(.5))
-    .force('charge', d3.forceManyBody().strength(-300))
-    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('charge', d3.forceManyBody().strength(-Math.max(40, Math.min(300, Math.sqrt(width * height) / 3))))
+    .force('x', d3.forceX(width / 2).strength(.08))
+    .force('y', d3.forceY(height / 2).strength(.08))
     .force('collision', d3.forceCollide().radius(d => d.size + 20));
 
   // Draw links
@@ -381,7 +394,12 @@ function renderAll(){
       return parts.slice(0, 2).join(' ');
     })
     .style('font-size', d => d.type === 'tool' ? '12px' : '9px')
-    .style('font-weight', d => d.type === 'tool' ? 700 : 500);
+    .style('font-weight', d => d.type === 'tool' ? 700 : 500)
+    .each(function(d){
+      const half = this.getComputedTextLength() / 2;
+      d.mx = Math.max(d.size, half) + 6;
+      d.my = d.size + 6;
+    });
 
   // Render sidebar
   sidebarList.innerHTML = '';
@@ -418,11 +436,16 @@ function renderAll(){
     });
   }
 
-  simulation.on('tick', () => {
+  sim.on('tick', () => {
     nodeArray.forEach(d => {
-      const m = d.size + 10;
-      d.x = Math.max(m, Math.min(width - m, d.x));
-      d.y = Math.max(m, Math.min(height - m, d.y));
+      const mx = Math.min(d.mx, width / 2);
+      const my = Math.min(d.my, height / 2);
+      const x = Math.max(mx, Math.min(width - mx, d.x));
+      const y = Math.max(my, Math.min(height - my, d.y));
+      if (x !== d.x) d.vx = 0;
+      if (y !== d.y) d.vy = 0;
+      d.x = x;
+      d.y = y;
     });
     link
       .attr('x1', d => d.source.x)
@@ -434,31 +457,38 @@ function renderAll(){
   });
 
   function dragStarted(e, d){
-    if (!e.active) simulation.alphaTarget(.3).restart();
+    if (!e.active) sim.alphaTarget(.3).restart();
     d.fx = d.x;
     d.fy = d.y;
   }
   function dragged(e, d){
-    const m = d.size + 10;
-    d.fx = Math.max(m, Math.min(width - m, e.x));
-    d.fy = Math.max(m, Math.min(height - m, e.y));
+    const mx = Math.min(d.mx, width / 2);
+    const my = Math.min(d.my, height / 2);
+    d.fx = Math.max(mx, Math.min(width - mx, e.x));
+    d.fy = Math.max(my, Math.min(height - my, e.y));
   }
   function dragEnded(e, d){
-    if (!e.active) simulation.alphaTarget(0);
+    if (!e.active) sim.alphaTarget(0);
     d.fx = null;
     d.fy = null;
   }
 }
 
-// Handle window resize
-window.addEventListener('resize', () => {
-  width = container.clientWidth;
-  height = container.clientHeight;
-  svg.attr('width', width).attr('height', height);
+// Re-measure and re-render when the network panel size changes
+let lastW = 0, lastH = 0;
+function onResize(){
+  const rect = container.getBoundingClientRect();
+  const w = Math.floor(rect.width), h = Math.floor(rect.height);
+  if (w === lastW && h === lastH) return;
+  lastW = w; lastH = h;
+  measure();
   renderAll();
-});
+}
+if (window.ResizeObserver) new ResizeObserver(onResize).observe(container);
+window.addEventListener('resize', onResize);
 
 renderChips();
+lastW = width; lastH = height;
 renderAll();
 } // end initNetwork
 
