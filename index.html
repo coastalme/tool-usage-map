@@ -410,9 +410,9 @@ function renderAll(){
     document.querySelectorAll(`[data-org="${d.org}"]`).forEach(el => el.classList.add('active'));
     
     // Highlight node
-    nodeSelection.select('circle').attr('opacity', n => n.id === d.org ? 1 : .3);
+    nodeSelection.select('circle').attr('opacity', n => (n.id === d.org || n.id === d.tool) ? 1 : .3);
     link.attr('class', l => {
-      const related = l.target === d.org || l.source.id === d.org;
+      const related = l.target.id === d.org;
       return related ? 'link' : 'link faded';
     });
   }
