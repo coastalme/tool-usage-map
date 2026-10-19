@@ -348,10 +348,10 @@ const map = L.map('map', {scrollWheelZoom:true}).setView([48, -2], 4);
 const TILE_PROVIDERS = [
   { url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
     attribution:'&copy; OpenStreetMap contributors &copy; CARTO', maxZoom:18 },
-  { url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution:'&copy; OpenStreetMap contributors', maxZoom:19 },
-  { url:'https://tile.openstreetmap.de/{z}/{x}/{y}.png',
-    attribution:'&copy; OpenStreetMap contributors', maxZoom:19 }
+  { url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attribution:'&copy; OpenStreetMap contributors &copy; CARTO', maxZoom:18 },
+  { url:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution:'Tiles &copy; Esri', maxZoom:16 }
 ];
 
 function addTileLayerWithFallback(providerIndex){
