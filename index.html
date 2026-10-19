@@ -288,6 +288,7 @@ const container = document.getElementById('network');
 let width = container.clientWidth;
 let height = container.clientHeight;
 
+svg.attr('width', width).attr('height', height);
 const g = svg.append('g');
 let selectedNode = null;
 const sidebarList = document.getElementById('entryList');
@@ -418,6 +419,11 @@ function renderAll(){
   }
 
   simulation.on('tick', () => {
+    nodeArray.forEach(d => {
+      const m = d.size + 10;
+      d.x = Math.max(m, Math.min(width - m, d.x));
+      d.y = Math.max(m, Math.min(height - m, d.y));
+    });
     link
       .attr('x1', d => d.source.x)
       .attr('y1', d => d.source.y)
@@ -433,8 +439,9 @@ function renderAll(){
     d.fy = d.y;
   }
   function dragged(e, d){
-    d.fx = e.x;
-    d.fy = e.y;
+    const m = d.size + 10;
+    d.fx = Math.max(m, Math.min(width - m, e.x));
+    d.fy = Math.max(m, Math.min(height - m, e.y));
   }
   function dragEnded(e, d){
     if (!e.active) simulation.alphaTarget(0);
