@@ -345,7 +345,7 @@ function renderAll(){
     .enter()
     .append('line')
     .attr('class', 'link')
-    .attr('stroke', d => TOOLS[d.source.tool || d.source].color)
+    .attr('stroke', d => TOOLS[d.source.id].color)
     .attr('opacity', .3);
 
   // Draw nodes
